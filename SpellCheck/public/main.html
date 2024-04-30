@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>챔피언의 스펠을 계산해보세요!</title>
+
+<style>
+		.total_table {
+            width: 800px;
+            margin: auto;
+            margin-top: 100px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid gray;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+        	width: 150px;
+        }
+        td {
+        	width: 500px;
+        }
+        
+</style>
+
+<script>
+
+	var imgUrl = ["image/barrier.webp", "image/cleanse.webp", 
+					"image/exhaust.webp", "image/flash.webp",
+					"image/ghost.webp", "image/heal.webp",
+					"image/ignite.webp", "image/smite.webp",
+					"image/teleport.webp"];
+	
+	var coolTime = [180000, 210000, 210000, 300000, 210000, 240000, 180000, 0, 240000];
+	
+	var audioUrl = ["audio/barrier.mp3", "audio/cleanse.mp3", 
+					"audio/exhaust.mp3", "audio/flash.mp3",
+					"audio/ghost.mp3", "audio/heal.mp3",
+					"audio/ignite.mp3", "audio/smite.mp3",
+					"audio/teleport.mp3"];
+	
+	var timer;
+	var uptime = 0;
+	
+	function btnClick(position, space) {
+		
+		var btn = document.getElementById(position);
+		btn.style.display = "none";
+		
+		for ( var i = 0; i < imgUrl.length; i++ ) {
+			var imageSpace = document.getElementById(space);
+			
+			var imgBtn = document.createElement("img");
+			imgBtn.src = imgUrl[i];
+			imgBtn.style.marginRight = "5px";
+			imgBtn.id = i;
+			imgBtn.onclick = function() {
+				spellFix(this.id, space);
+			};
+			
+			imageSpace.appendChild(imgBtn);
+			
+		}
+	}
+	
+	function spellFix(id, space) {
+		
+		var imageSpace = document.getElementById(space);
+		
+		while( imageSpace.firstChild ) {
+			imageSpace.removeChild(imageSpace.firstChild);
+		}
+		
+		var imgBtn = document.createElement("img");
+		imgBtn.src = imgUrl[id];
+		imgBtn.id = id;
+		imgBtn.addEventListener("click", function() {
+			
+			this.style.transition = "brightness 1s";
+			this.style.filter = "brightness(0.5)";
+			
+			var thisImg = this;
+			
+			var comment = document.getElementById("comment");
+			var ogComment = comment.value;
+			var splitOgComment = ogComment.split('\n');
+			var newComment = "";
+			
+			if ( id == 3 ) {
+				
+				var min = Math.floor((uptime + 300) / 60);
+				var sec = (uptime + 300) % 60;
+				
+				if ( space.startsWith('t') ) {
+					splitOgComment[0] = "top " + min + " " + sec;
+				} else if ( space.startsWith('j') ) {
+					splitOgComment[1] = "jg " + min + " " + sec;
+				} else if ( space.startsWith('m') ) {
+					splitOgComment[2] = "mid " + min + " " + sec;
+				} else if ( space.startsWith('a') ) {
+					splitOgComment[3] = "ad " + min + " " + sec;
+				} else if ( space.startsWith('s') ) {
+					splitOgComment[4] = "sup " + min + " " + sec;
+				}
+
+				for( var i = 0; i < splitOgComment.length; i++ ) {
+					newComment += splitOgComment[i] + "\n";
+				}
+				
+				comment.value = newComment;
+				
+			}
+			
+			setTimeout(function() {
+				
+				var comment = document.getElementById("comment");
+				var ogComment = comment.value;
+				var splitOgComment = ogComment.split('\n');
+				var newComment = "";
+				
+				if ( space.startsWith('t') ) {
+					var who = new Audio('audio/top.mp3');
+					splitOgComment[0] = "top ";
+				} else if ( space.startsWith('j') ) {
+					var who = new Audio('audio/jg.mp3');
+					splitOgComment[1] = "jg ";
+				} else if ( space.startsWith('m') ) {
+					var who = new Audio('audio/mid.mp3');
+					splitOgComment[2] = "mid ";
+				} else if ( space.startsWith('a') ) {
+					var who = new Audio('audio/ad.mp3');
+					splitOgComment[3] = "ad ";
+				} else if ( space.startsWith('s') ) {
+					var who = new Audio('audio/sup.mp3');
+					splitOgComment[4] = "sup ";
+				}
+				
+				for( var i = 0; i < splitOgComment.length; i++ ) {
+					newComment += splitOgComment[i] + "\n";
+				}
+				
+				comment.value = newComment;
+				
+				var what = new Audio(audioUrl[id]);
+				
+				var done = new Audio('audio/exist.mp3');
+				
+				who.play();
+				
+				setTimeout(function() {
+					what.play();
+				}, 700);
+				
+				setTimeout(function() {
+					done.play();
+				}, 1400);
+				
+				thisImg.style.transition = "brightness 1s";
+				thisImg.style.filter = "brightness(1)";
+				
+			}, coolTime[id]);
+		});
+		
+		imageSpace.appendChild(imgBtn);
+
+	}
+	
+	function startTimer() {
+		
+		timer = setInterval(updateTimer, 1000);
+		
+		document.getElementById("start").disabled = true;
+		document.getElementById("stop").disabled = false;		
+	}
+	
+	function stopTimer() {
+		
+		clearInterval(timer);
+		
+		document.getElementById("start").disabled = false;
+		document.getElementById("stop").disabled = true;
+		
+		document.getElementById("comment").value = "top\njg\nmid\nad\nsup\n"
+		location.reload();	
+		
+	}
+	
+	function updateTimer() {
+		uptime++;
+	}
+	
+</script>
+
+</head>
+<body>
+<div class = "total_table">
+<table border="1">
+    <tr>
+        <td>탑</td>
+        <td id="t1"><input type="button" onclick="btnClick('top1', 't1')" value="스펠 선택" id="top1"/></td>
+        <td id="t2"><input type="button" onclick="btnClick('top2', 't2')" value="스펠 선택" id="top2"/></td>
+    </tr>
+    
+    <tr>
+        <td>정글</td>
+        <td id="j1"><input type="button" onclick="btnClick('jg1', 'j1')" value="스펠 선택" id="jg1"/></td>
+        <td id="j2"><input type="button" onclick="btnClick('jg2', 'j2')" value="스펠 선택" id="jg2"/></td>
+    </tr>
+    
+    <tr>
+        <td>미드</td>
+        <td id="m1"><input type="button" onclick="btnClick('mid1', 'm1')" value="스펠 선택" id="mid1"/></td>
+        <td id="m2"><input type="button" onclick="btnClick('mid2', 'm2')" value="스펠 선택" id="mid2"/></td>
+    </tr>
+    
+    <tr>
+        <td>원딜</td>
+        <td id="a1"><input type="button" onclick="btnClick('ad1', 'a1')" value="스펠 선택" id="ad1"/></td>
+        <td id="a2"><input type="button" onclick="btnClick('ad2', 'a2')" value="스펠 선택" id="ad2"/></td>
+    </tr>
+    
+    <tr>
+        <td>서폿</td>
+        <td id="s1"><input type="button" onclick="btnClick('sup1', 's1')" value="스펠 선택" id="sup1"/></td>
+        <td id="s2"><input type="button" onclick="btnClick('sup2', 's2')" value="스펠 선택" id="sup2"/></td>
+    </tr>
+    
+</table>
+
+<br>
+<br>
+<textarea id="comment" rows="8" cols="50">
+top
+jg
+mid
+ad
+sup
+</textarea>
+<button id = "start" onclick="startTimer()"> 게임 시작 </button>
+<button id = "stop" onclick="stopTimer()"> 게임 종료 </button>
+
+</div>
+</body>
+</html>
