@@ -38,7 +38,3 @@ function resetFlashMemo(spell, flashOwner) {
 		memoSpace.value = newComment;
 	}
 }
-
-function cleanFlashMemo() {
-	document.getElementById("memo").value = "top\njg\nmid\nad\nsup\n"
-}
