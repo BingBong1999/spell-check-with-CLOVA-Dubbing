@@ -32,11 +32,16 @@
 <script>
 	
 	const CLICK_LOCATION_TO_POSITION_INDEX = {
-		top2Btn: 0,
-		jg2Btn: 1,
-		mid2Btn: 2,
-		ad2Btn: 3,
-		sup2Btn: 4
+		topSpell1: 0,
+		topSpell2: 0,
+		jgSpell1: 1,
+		jgSpell2: 1,
+		midSpell1: 2,
+		midSpell2: 2,
+		adSpell1: 3,
+		adSpell2: 3,
+		supSpell1: 4,
+		supSpell2: 4
 	}
 	
 	const CLICK_LOCATION_TO_WHOSE_VOICE = {
@@ -48,11 +53,11 @@
 	}
 	
 	const POSITION_INDEX_TO_LANE = {
-		0: "Top",
-		1: "Jug",
-		2: "Mid",
-		3: "Ad",
-		4: "Sup"
+		0: "top ",
+		1: "jg ",
+		2: "mid ",
+		3: "ad ",
+		4: "sup "
 	}
 
 	var imgUrl = ["image/barrier.webp", "image/cleanse.webp", 
@@ -119,7 +124,7 @@
 		
 		spell.src = imgUrl[spellId];
 		spell.id = spellId;
-		spell.addEventListener("click", () => clickSpell(spell, spellSpace));
+		spell.addEventListener("click", () => clickSpell(spell, spellSpace.id));
 		
 		spellSpace.appendChild(spell);
 	}
@@ -128,10 +133,12 @@
 		darkenSpell(spell);
 		updateFlashMemo(spell, flashOwner);
 			
-		setTimeout(handleAfterCoolExpired(flashOwner, spell), coolTime[spell]);
+		setTimeout(function() {
+			handleAfterCoolExpired(flashOwner, spell)
+			resetFlashMemo(spell, flashOwner);
+			brightenSpell(spell);
+		}, coolTime[spell.id]);
 		
-		resetFlashMemo(spell, flashOwner);
-		//brightenSpell(spell);
 	}
 	
 	function darkenSpell(spell) {
@@ -149,15 +156,13 @@
 		var comment = memoSpace.value;
 		var commentListByPosition = comment.split('\n');
 		var newComment = "";
-			
-		if ( spell.id == 3 ) { // 점멸일 경우에만 메모 계산
-				
+		
+		if ( spell.id == 3 ) { // 점멸일 경우에만 메모 계산			
 			var min = Math.floor((uptime + 300) / 60);
 			var sec = (uptime + 300) % 60;
 			
-			var positionIndex = CLICK_LOCATION_TO_POSITION_INDEX.flashOwner;
-			
-			commentListByPosition[positionIndex] = POSITION_INDEX_TO_LANE.positionIndex + min + " " + sec;
+			var positionIndex = CLICK_LOCATION_TO_POSITION_INDEX[flashOwner];
+			commentListByPosition[positionIndex] = POSITION_INDEX_TO_LANE[positionIndex] + min + " " + sec;
 				
 			for( var i = 0; i < commentListByPosition.length; i++ ) {
 				newComment += commentListByPosition[i] + "\n";
@@ -169,9 +174,9 @@
 	
 	function handleAfterCoolExpired(flashOwner, spell) {
 		
-		var who = new Audio(CLICK_LOCATION_TO_WHOSE_VOICE.flashOwner);
+		var who = new Audio(CLICK_LOCATION_TO_WHOSE_VOICE[flashOwner]);
 
-		var what = new Audio(audioUrl[spell]);
+		var what = new Audio(audioUrl[spell.id]);
 
 		var done = new Audio('audio/exist.mp3');
 
@@ -194,10 +199,10 @@
 		var newComment = "";
 			
 		if ( spell.id == 3 ) { // 점멸일 경우에만 메모 계산
+
+			var positionIndex = CLICK_LOCATION_TO_POSITION_INDEX[flashOwner];
 			
-			var positionIndex = CLICK_LOCATION_TO_POSITION_INDEX.flashOwner;
-			
-			commentListByPosition[positionIndex] = POSITION_INDEX_TO_LANE.positionIndex  + " ";
+			commentListByPosition[positionIndex] = POSITION_INDEX_TO_LANE[positionIndex] + " ";
 				
 			for( var i = 0; i < commentListByPosition.length; i++ ) {
 				newComment += commentListByPosition[i] + "\n";
