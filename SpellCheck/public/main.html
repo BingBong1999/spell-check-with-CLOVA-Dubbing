@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 
-<title>챔피언의 스펠을 계산해보세요!</title>
+<title>Calculate Opposite Spells!</title>
 
 <style>
-		.total_table {
+		.entire_view {
             width: 800px;
             margin: auto;
             margin-top: 100px;
@@ -30,6 +30,30 @@
 </style>
 
 <script>
+	
+	const CLICK_LOCATION_TO_POSITION_INDEX = {
+		top2Btn: 0,
+		jg2Btn: 1,
+		mid2Btn: 2,
+		ad2Btn: 3,
+		sup2Btn: 4
+	}
+	
+	const CLICK_LOCATION_TO_WHOSE_VOICE = {
+		top2Btn: 'audio/top.mp3',
+		jg2Btn: 'audio/jg.mp3',
+		mid2Btn: 'audio/mid.mp3',
+		ad2Btn: 'audio/ad.mp3',
+		sup2Btn: 'audio/sup.mp3'
+	}
+	
+	const POSITION_INDEX_TO_LANE = {
+		0: "Top",
+		1: "Jug",
+		2: "Mid",
+		3: "Ad",
+		4: "Sup"
+	}
 
 	var imgUrl = ["image/barrier.webp", "image/cleanse.webp", 
 					"image/exhaust.webp", "image/flash.webp",
@@ -46,204 +70,219 @@
 					"audio/teleport.mp3"];
 	
 	var timer;
+	
 	var uptime = 0;
 	
-	function btnClick(position, space) {
-		
-		var btn = document.getElementById(position);
+	function clickSpellChoiceBtn(SpellChoiceBtnId, locationOfSpellChoiceBtn) {
+		removeSpellChoiceBtn(SpellChoiceBtnId);
+		createAllSpell(locationOfSpellChoiceBtn);
+	}
+	
+	function removeSpellChoiceBtn(SpellChoiceBtnId) {
+		var btn = document.getElementById(SpellChoiceBtnId);
 		btn.style.display = "none";
+	}
+	
+	function createAllSpell(locationOfSpellChoiceBtn) {
+		var spellSpace = document.getElementById(locationOfSpellChoiceBtn);
 		
-		for ( var i = 0; i < imgUrl.length; i++ ) {
-			var imageSpace = document.getElementById(space);
+		for ( var i = 0; i < imgUrl.length; i++ ) {	
 			
-			var imgBtn = document.createElement("img");
-			imgBtn.src = imgUrl[i];
-			imgBtn.style.marginRight = "5px";
-			imgBtn.id = i;
-			imgBtn.onclick = function() {
-				spellFix(this.id, space);
+			var spell = document.createElement("img");
+			spell.src = imgUrl[i];
+			spell.style.marginRight = "5px";
+			spell.id = i;
+			spell.onclick = function() {
+				decideSpell(locationOfSpellChoiceBtn, this.id);
 			};
 			
-			imageSpace.appendChild(imgBtn);
-			
+			spellSpace.appendChild(spell);
 		}
 	}
 	
-	function spellFix(id, space) {
+	function decideSpell(locationOfSpells, spellId) {	
+		removeAllSpell(locationOfSpells);
+		createSpell(spellId, locationOfSpells);
+	}
+	
+	function removeAllSpell(locationOfSpells) {
+		var spellsSpace = document.getElementById(locationOfSpells);
 		
-		var imageSpace = document.getElementById(space);
-		
-		while( imageSpace.firstChild ) {
-			imageSpace.removeChild(imageSpace.firstChild);
+		while( spellsSpace.firstChild ) {
+			spellsSpace.removeChild(spellsSpace.firstChild);
 		}
+	}
+	
+	function createSpell(spellId, locationOfSpells) {
+		var spellSpace = document.getElementById(locationOfSpells);
+		var spell = document.createElement("img");
 		
-		var imgBtn = document.createElement("img");
-		imgBtn.src = imgUrl[id];
-		imgBtn.id = id;
-		imgBtn.addEventListener("click", function() {
+		spell.src = imgUrl[spellId];
+		spell.id = spellId;
+		spell.addEventListener("click", () => clickSpell(spell, spellSpace));
+		
+		spellSpace.appendChild(spell);
+	}
+	
+	function clickSpell(spell, flashOwner) {
+		darkenSpell(spell);
+		updateFlashMemo(spell, flashOwner);
 			
-			this.style.transition = "brightness 1s";
-			this.style.filter = "brightness(0.5)";
+		setTimeout(handleAfterCoolExpired(flashOwner, spell), coolTime[spell]);
+		
+		resetFlashMemo(spell, flashOwner);
+		//brightenSpell(spell);
+	}
+	
+	function darkenSpell(spell) {
+		spell.style.transition = "brightness 1s";
+		spell.style.filter = "brightness(0.5)";
+	}
+	
+	function brightenSpell(spell) {		
+		spell.style.transition = "brightness 1s";
+		spell.style.filter = "brightness(1)";
+	}
+	
+	function updateFlashMemo(spell, flashOwner) {		
+		var memoSpace = document.getElementById("memo");
+		var comment = memoSpace.value;
+		var commentListByPosition = comment.split('\n');
+		var newComment = "";
 			
-			var thisImg = this;
+		if ( spell.id == 3 ) { // 점멸일 경우에만 메모 계산
+				
+			var min = Math.floor((uptime + 300) / 60);
+			var sec = (uptime + 300) % 60;
 			
-			var comment = document.getElementById("comment");
-			var ogComment = comment.value;
-			var splitOgComment = ogComment.split('\n');
-			var newComment = "";
+			var positionIndex = CLICK_LOCATION_TO_POSITION_INDEX.flashOwner;
 			
-			if ( id == 3 ) {
+			commentListByPosition[positionIndex] = POSITION_INDEX_TO_LANE.positionIndex + min + " " + sec;
 				
-				var min = Math.floor((uptime + 300) / 60);
-				var sec = (uptime + 300) % 60;
-				
-				if ( space.startsWith('t') ) {
-					splitOgComment[0] = "top " + min + " " + sec;
-				} else if ( space.startsWith('j') ) {
-					splitOgComment[1] = "jg " + min + " " + sec;
-				} else if ( space.startsWith('m') ) {
-					splitOgComment[2] = "mid " + min + " " + sec;
-				} else if ( space.startsWith('a') ) {
-					splitOgComment[3] = "ad " + min + " " + sec;
-				} else if ( space.startsWith('s') ) {
-					splitOgComment[4] = "sup " + min + " " + sec;
-				}
-
-				for( var i = 0; i < splitOgComment.length; i++ ) {
-					newComment += splitOgComment[i] + "\n";
-				}
-				
-				comment.value = newComment;
-				
+			for( var i = 0; i < commentListByPosition.length; i++ ) {
+				newComment += commentListByPosition[i] + "\n";
 			}
-			
-			setTimeout(function() {
-				
-				var comment = document.getElementById("comment");
-				var ogComment = comment.value;
-				var splitOgComment = ogComment.split('\n');
-				var newComment = "";
-				
-				if ( space.startsWith('t') ) {
-					var who = new Audio('audio/top.mp3');
-					splitOgComment[0] = "top ";
-				} else if ( space.startsWith('j') ) {
-					var who = new Audio('audio/jg.mp3');
-					splitOgComment[1] = "jg ";
-				} else if ( space.startsWith('m') ) {
-					var who = new Audio('audio/mid.mp3');
-					splitOgComment[2] = "mid ";
-				} else if ( space.startsWith('a') ) {
-					var who = new Audio('audio/ad.mp3');
-					splitOgComment[3] = "ad ";
-				} else if ( space.startsWith('s') ) {
-					var who = new Audio('audio/sup.mp3');
-					splitOgComment[4] = "sup ";
-				}
-				
-				for( var i = 0; i < splitOgComment.length; i++ ) {
-					newComment += splitOgComment[i] + "\n";
-				}
-				
-				comment.value = newComment;
-				
-				var what = new Audio(audioUrl[id]);
-				
-				var done = new Audio('audio/exist.mp3');
-				
-				who.play();
-				
-				setTimeout(function() {
-					what.play();
-				}, 700);
-				
-				setTimeout(function() {
-					done.play();
-				}, 1400);
-				
-				thisImg.style.transition = "brightness 1s";
-				thisImg.style.filter = "brightness(1)";
-				
-			}, coolTime[id]);
-		});
+
+			memoSpace.value = newComment;
+		}
+	}
+	
+	function handleAfterCoolExpired(flashOwner, spell) {
 		
-		imageSpace.appendChild(imgBtn);
+		var who = new Audio(CLICK_LOCATION_TO_WHOSE_VOICE.flashOwner);
+
+		var what = new Audio(audioUrl[spell]);
+
+		var done = new Audio('audio/exist.mp3');
+
+		who.play();
+
+		setTimeout(function() {
+			what.play();
+		}, 700);
+
+		setTimeout(function() {
+			done.play();
+		}, 1400);
 
 	}
 	
-	function startTimer() {
-		
+	function resetFlashMemo(spell, flashOwner) {
+		var memoSpace = document.getElementById("memo");
+		var comment = memoSpace.value;
+		var commentListByPosition = comment.split('\n');
+		var newComment = "";
+			
+		if ( spell.id == 3 ) { // 점멸일 경우에만 메모 계산
+			
+			var positionIndex = CLICK_LOCATION_TO_POSITION_INDEX.flashOwner;
+			
+			commentListByPosition[positionIndex] = POSITION_INDEX_TO_LANE.positionIndex  + " ";
+				
+			for( var i = 0; i < commentListByPosition.length; i++ ) {
+				newComment += commentListByPosition[i] + "\n";
+			}
+
+			memoSpace.value = newComment;
+		}
+	}
+	
+	function cleanFlashMemo() {
+		document.getElementById("memo").value = "top\njg\nmid\nad\nsup\n"
+	}
+	
+	function gameStart() {
 		timer = setInterval(updateTimer, 1000);
 		
 		document.getElementById("start").disabled = true;
 		document.getElementById("stop").disabled = false;		
 	}
 	
-	function stopTimer() {
-		
+	function updateTimer() {
+		uptime++;
+	}
+	
+	function gameEnd() {
 		clearInterval(timer);
 		
 		document.getElementById("start").disabled = false;
 		document.getElementById("stop").disabled = true;
 		
-		document.getElementById("comment").value = "top\njg\nmid\nad\nsup\n"
-		location.reload();	
+		cleanFlashMemo
 		
-	}
-	
-	function updateTimer() {
-		uptime++;
-	}
-	
+		location.reload();
+	}	
 </script>
 
 </head>
 <body>
-<div class = "total_table">
+<div class = "entire_view">
 <table border="1">
     <tr>
         <td>탑</td>
-        <td id="t1"><input type="button" onclick="btnClick('top1', 't1')" value="스펠 선택" id="top1"/></td>
-        <td id="t2"><input type="button" onclick="btnClick('top2', 't2')" value="스펠 선택" id="top2"/></td>
+        <td id="topSpell1"><input type="button" onclick="clickSpellChoiceBtn('top1Btn', 'topSpell1')" value="스펠 선택" id="top1Btn"/></td>
+        <td id="topSpell2"><input type="button" onclick="clickSpellChoiceBtn('top2Btn', 'topSpell2')" value="스펠 선택" id="top2Btn"/></td>
     </tr>
     
     <tr>
         <td>정글</td>
-        <td id="j1"><input type="button" onclick="btnClick('jg1', 'j1')" value="스펠 선택" id="jg1"/></td>
-        <td id="j2"><input type="button" onclick="btnClick('jg2', 'j2')" value="스펠 선택" id="jg2"/></td>
+        <td id="jgSpell1"><input type="button" onclick="clickSpellChoiceBtn('jg1Btn', 'jgSpell1')" value="스펠 선택" id="jg1Btn"/></td>
+        <td id="jgSpell2"><input type="button" onclick="clickSpellChoiceBtn('jg2Btn', 'jgSpell2')" value="스펠 선택" id="jg2Btn"/></td>
     </tr>
     
     <tr>
         <td>미드</td>
-        <td id="m1"><input type="button" onclick="btnClick('mid1', 'm1')" value="스펠 선택" id="mid1"/></td>
-        <td id="m2"><input type="button" onclick="btnClick('mid2', 'm2')" value="스펠 선택" id="mid2"/></td>
+        <td id="midSpell1"><input type="button" onclick="clickSpellChoiceBtn('mid1Btn', 'midSpell1')" value="스펠 선택" id="mid1Btn"/></td>
+        <td id="midSpell2"><input type="button" onclick="clickSpellChoiceBtn('mid2Btn', 'midSpell2')" value="스펠 선택" id="mid2Btn"/></td>
     </tr>
     
     <tr>
         <td>원딜</td>
-        <td id="a1"><input type="button" onclick="btnClick('ad1', 'a1')" value="스펠 선택" id="ad1"/></td>
-        <td id="a2"><input type="button" onclick="btnClick('ad2', 'a2')" value="스펠 선택" id="ad2"/></td>
+        <td id="adSpell1"><input type="button" onclick="clickSpellChoiceBtn('ad1Btn', 'adSpell1')" value="스펠 선택" id="ad1Btn"/></td>
+        <td id="adSpell2"><input type="button" onclick="clickSpellChoiceBtn('ad2Btn', 'adSpell2')" value="스펠 선택" id="ad2Btn"/></td>
     </tr>
     
     <tr>
         <td>서폿</td>
-        <td id="s1"><input type="button" onclick="btnClick('sup1', 's1')" value="스펠 선택" id="sup1"/></td>
-        <td id="s2"><input type="button" onclick="btnClick('sup2', 's2')" value="스펠 선택" id="sup2"/></td>
+        <td id="supSpell1"><input type="button" onclick="clickSpellChoiceBtn('sup1Btn', 'supSpell1')" value="스펠 선택" id="sup1Btn"/></td>
+        <td id="supSpell2"><input type="button" onclick="clickSpellChoiceBtn('sup2Btn', 'supSpell2')" value="스펠 선택" id="sup2Btn"/></td>
     </tr>
     
 </table>
 
 <br>
 <br>
-<textarea id="comment" rows="8" cols="50">
+
+<textarea id="memo" rows="8" cols="50">
 top
 jg
 mid
 ad
 sup
 </textarea>
-<button id = "start" onclick="startTimer()"> 게임 시작 </button>
-<button id = "stop" onclick="stopTimer()"> 게임 종료 </button>
+
+<button id = "start" onclick="gameStart()"> 게임 시작 </button>
+<button id = "stop" onclick="gameEnd()"> 게임 종료 </button>
 
 </div>
 </body>
