@@ -48,3 +48,6 @@
 ![image](https://github.com/BingBong1999/spell-check/assets/142529694/fbc6f55a-14ad-40e9-8367-7c0438701d2e)
 ![image](https://github.com/BingBong1999/spell-check/assets/142529694/7dcd3456-9bce-49ae-97fc-cffb34b06894)
 ![image](https://github.com/BingBong1999/spell-check/assets/142529694/dfd58c01-07df-42bf-b342-d26946d662fd)
+
+spell-check-with-CLOVA-Dubbing은 라이엇 게임즈의 “지식재산 이용 정책”에 따라 라이엇 게임즈 소유의 자산을 이용하여 제작되었습니다. 
+라이엇 게임즈는 이 프로젝트를 지지하거나 후원하지 않습니다.
